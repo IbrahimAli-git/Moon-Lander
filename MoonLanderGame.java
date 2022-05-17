@@ -11,6 +11,7 @@ public class MoonLanderGame extends Game {
     private boolean isLeftPressed;
     private boolean isRightPressed;
     private GameObject platform;
+    private boolean isGameStopped;
 
     @Override
     public void initialize() {
@@ -26,6 +27,7 @@ public class MoonLanderGame extends Game {
         isUpPressed = false;
         isLeftPressed = false;
         isRightPressed = false;
+        isGameStopped = false;
     }
 
     private void drawScene() {
@@ -48,11 +50,17 @@ public class MoonLanderGame extends Game {
     }
 
     private void win(){
-
+        rocket.land();
+        isGameStopped = true;
+        showMessageDialog(Color.WHITE, "You've Won", Color.BLACK, 75);
+        stopTurnTimer();
     }
 
     private void gameOver(){
-
+        rocket.crash();
+        isGameStopped = true;
+        showMessageDialog(Color.WHITE, "Game Over", Color.BLACK, 75);
+        stopTurnTimer();
     }
 
     @Override
@@ -79,6 +87,10 @@ public class MoonLanderGame extends Game {
 
     @Override
     public void onKeyPress(Key key) {
+        if (key == Key.SPACE && isGameStopped){
+            createGame();
+            return;
+        }
         switch (key) {
             case UP:
                 isUpPressed = true;
