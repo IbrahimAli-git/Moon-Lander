@@ -2,76 +2,115 @@ package com.codegym.games.moonlander;
 
 import com.codegym.engine.cell.*;
 
-public class Rocket extends GameObject {
-    private double speedY = 0;
-    private double speedX = 0;
-    private double boost = 0.05;
-    private double slowdown = boost / 10;
+public class MoonLanderGame extends Game {
+    public static final int WIDTH = 64;
+    public static final int HEIGHT = 64;
+    private Rocket rocket;
+    private GameObject landscape;
+    private boolean isUpPressed;
+    private boolean isLeftPressed;
+    private boolean isRightPressed;
+    private GameObject platform;
+    private boolean isGameStopped;
 
-    public Rocket(double x, double y) {
-        super(x, y, ShapeMatrix.ROCKET);
+    @Override
+    public void initialize() {
+        setScreenSize(HEIGHT, WIDTH);
+        createGame();
+        showGrid(false);
     }
 
-    public void move(boolean isUpPressed, boolean isLeftPressed, boolean isRightPressed) {
-        if (isUpPressed) {
-            speedY -= boost;
-        } else {
-            speedY += boost;
-        }
-        y += speedY;
-
-        if (isLeftPressed) {
-            speedX -= boost;
-            x += speedX;
-        } else if (isRightPressed) {
-            speedX += boost;
-            x += speedX;
-        } else if (speedX > slowdown) {
-            speedX -= slowdown;
-        } else if (speedX < -slowdown) {
-            speedX += slowdown;
-        } else {
-            speedX = 0;
-        }
-        x += speedX;
-        checkBorders();
+    private void createGame() {
+        createGameObjects();
+        drawScene();
+        setTurnTimer(50);
+        isUpPressed = false;
+        isLeftPressed = false;
+        isRightPressed = false;
+        isGameStopped = false;
     }
 
-    private void checkBorders() {
-        if (x < 0) {
-            x = 0;
-            speedX = 0;
-        } else if (x + width > MoonLanderGame.WIDTH) {
-            x = MoonLanderGame.WIDTH - width;
-            speedX = 0;
-        }
-        if (y <= 0) {
-            y = 0;
-            speedY = 0;
-        }
-    }
-
-    public boolean isStopped() {
-        return speedY < 10 * boost;
-    }
-
-    public boolean isCollision(GameObject object) {
-        int transparent = Color.NONE.ordinal();
-
-        for (int matrixX = 0; matrixX < width; matrixX++) {
-            for (int matrixY = 0; matrixY < height; matrixY++) {
-                int objectX = matrixX + (int) x - (int) object.x;
-                int objectY = matrixY + (int) y - (int) object.y;
-
-                if (objectX < 0 || objectX >= object.width || objectY < 0 || objectY >= object.height) {
-                    continue;
-                }
-
-                if (matrix[matrixY][matrixX] != transparent && object.matrix[objectY][objectX] != transparent) {
-                    return true;
-                }
+    private void drawScene() {
+        for (int i = 0; i < WIDTH; i++) {
+            for (int j = 0; j < HEIGHT; j++) {
+                setCellColor(i, j, Color.ORANGE);
             }
         }
-        return false;
+        rocket.draw(this);
+        landscape.draw(this);
+    }
+
+    private void check(){
+        if (rocket.isCollision(landscape) && !(rocket.isCollision(platform) && rocket.isStopped())) {
+            gameOver();
+        }
+        if (rocket.isCollision(platform) && rocket.isStopped()){
+            win();
+        }
+    }
+
+    private void win(){
+        rocket.land();
+        isGameStopped = true;
+        showMessageDialog(Color.WHITE, "You've Won", Color.BLACK, 75);
+        stopTurnTimer();
+    }
+
+    private void gameOver(){
+
+    }
+
+    @Override
+    public void onTurn(int step) {
+        rocket.move(isUpPressed, isLeftPressed, isRightPressed);
+        check();
+        drawScene();
+    }
+
+    @Override
+    public void setCellColor(int x, int y, Color color) {
+        if (x <= 0 || y <= 0 || x >= WIDTH || y >= HEIGHT) {
+
+        } else {
+            super.setCellColor(x, y, color);
+        }
+    }
+
+    private void createGameObjects() {
+        rocket = new Rocket(WIDTH / 2, 0);
+        landscape = new GameObject(0, 25, ShapeMatrix.LANDSCAPE);
+        platform = new GameObject(23, MoonLanderGame.HEIGHT -1, ShapeMatrix.PLATFORM);
+    }
+
+    @Override
+    public void onKeyPress(Key key) {
+        switch (key) {
+            case UP:
+                isUpPressed = true;
+                break;
+            case LEFT:
+                isLeftPressed = true;
+                isRightPressed = false;
+                break;
+            case RIGHT:
+                isRightPressed = true;
+                isLeftPressed = false;
+                break;
+        }
+    }
+
+    @Override
+    public void onKeyReleased(Key key) {
+        switch (key) {
+            case UP:
+                isUpPressed = false;
+                break;
+            case LEFT:
+                isLeftPressed = false;
+                break;
+            case RIGHT:
+                isRightPressed = false;
+                break;
+        }
     }
 }
