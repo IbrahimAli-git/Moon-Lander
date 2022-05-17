@@ -2,14 +2,23 @@ package com.codegym.games.moonlander;
 
 import com.codegym.engine.cell.*;
 
+import java.util.Arrays;
+
 public class Rocket extends GameObject {
     private double speedY = 0;
     private double speedX = 0;
     private double boost = 0.05;
     private double slowdown = boost / 10;
+    private RocketFire downFire;
+    private RocketFire leftFire;
+    private RocketFire rightFire;
+
 
     public Rocket(double x, double y) {
         super(x, y, ShapeMatrix.ROCKET);
+        downFire = new RocketFire(Arrays.asList(ShapeMatrix.FIRE_DOWN_1, ShapeMatrix.FIRE_DOWN_2, ShapeMatrix.FIRE_DOWN_3));
+        leftFire = new RocketFire(Arrays.asList(ShapeMatrix.FIRE_SIDE_1, ShapeMatrix.FIRE_SIDE_2));
+        rightFire = new RocketFire(Arrays.asList(ShapeMatrix.FIRE_SIDE_1, ShapeMatrix.FIRE_SIDE_2));
     }
 
     public void move(boolean isUpPressed, boolean isLeftPressed, boolean isRightPressed) {
@@ -35,6 +44,7 @@ public class Rocket extends GameObject {
         }
         x += speedX;
         checkBorders();
+        switchFire(isUpPressed, isLeftPressed, isRightPressed);
     }
 
     private void checkBorders() {
@@ -73,6 +83,32 @@ public class Rocket extends GameObject {
             }
         }
         return false;
+    }
+
+    private void switchFire(boolean isUpPressed, boolean isLeftPressed, boolean isRightPressed){
+        if (isLeftPressed){
+            leftFire.x = x + width;
+            leftFire.y = y + height;
+            leftFire.show();
+        } else {
+            leftFire.hide();
+        }
+        if (isRightPressed){
+            rightFire.x = x - ShapeMatrix.FIRE_SIDE_1[0].length;
+            rightFire.y = y + height;
+            rightFire.show();
+        } else {
+            rightFire.hide();
+        }
+    }
+
+
+    @Override
+    public void draw(Game game) {
+        super.draw(game);
+        downFire.draw(game);
+        leftFire.draw(game);
+        rightFire.draw(game);
     }
 
     public void land(){
