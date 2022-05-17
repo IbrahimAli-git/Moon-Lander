@@ -1,60 +1,77 @@
 package com.codegym.games.moonlander;
 
+import com.codegym.engine.cell.*;
+
 public class Rocket extends GameObject {
     private double speedY = 0;
-    private double boost = 0.05;
     private double speedX = 0;
-    private double slowdown = boost/10;
+    private double boost = 0.05;
+    private double slowdown = boost / 10;
 
     public Rocket(double x, double y) {
         super(x, y, ShapeMatrix.ROCKET);
     }
 
-    public boolean isStopped(){
-        return speedY < boost * 10;
-    }
-
-    public void move(boolean isUpPressed, boolean isLeftPressed, boolean isRightPressed){
-        if (isUpPressed){
+    public void move(boolean isUpPressed, boolean isLeftPressed, boolean isRightPressed) {
+        if (isUpPressed) {
             speedY -= boost;
         } else {
             speedY += boost;
         }
         y += speedY;
 
-        if (isLeftPressed){
+        if (isLeftPressed) {
             speedX -= boost;
             x += speedX;
-        } else if (isRightPressed){
+        } else if (isRightPressed) {
             speedX += boost;
             x += speedX;
-        }
-
-        if (!isLeftPressed && !isRightPressed && (speedX > -slowdown && speedX < slowdown)){
-            speedX = 0;
-            x += speedX;
-        } else if (!isLeftPressed && !isRightPressed && speedX > slowdown){
+        } else if (speedX > slowdown) {
             speedX -= slowdown;
-            x += speedX;
-        } else if(!isLeftPressed && !isRightPressed && speedX < -slowdown){
+        } else if (speedX < -slowdown) {
             speedX += slowdown;
-            x += speedX;
+        } else {
+            speedX = 0;
         }
-
+        x += speedX;
         checkBorders();
     }
-    private void checkBorders(){
-        if (x < 0){
+
+    private void checkBorders() {
+        if (x < 0) {
             x = 0;
             speedX = 0;
-        }
-        if (x + width > MoonLanderGame.WIDTH){
+        } else if (x + width > MoonLanderGame.WIDTH) {
             x = MoonLanderGame.WIDTH - width;
             speedX = 0;
         }
-        if (y < 0){
+        if (y <= 0) {
             y = 0;
             speedY = 0;
         }
+    }
+
+    public boolean isStopped() {
+        return speedY < 10 * boost;
+    }
+
+    public boolean isCollision(GameObject object) {
+        int transparent = Color.NONE.ordinal();
+
+        for (int matrixX = 0; matrixX < width; matrixX++) {
+            for (int matrixY = 0; matrixY < height; matrixY++) {
+                int objectX = matrixX + (int) x - (int) object.x;
+                int objectY = matrixY + (int) y - (int) object.y;
+
+                if (objectX < 0 || objectX >= object.width || objectY < 0 || objectY >= object.height) {
+                    continue;
+                }
+
+                if (matrix[matrixY][matrixX] != transparent && object.matrix[objectY][objectX] != transparent) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
