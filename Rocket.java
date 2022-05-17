@@ -10,6 +10,10 @@ public class Rocket extends GameObject {
         super(x, y, ShapeMatrix.ROCKET);
     }
 
+    public boolean isStopped(){
+        return speedY < boost * 10;
+    }
+
     public void move(boolean isUpPressed, boolean isLeftPressed, boolean isRightPressed){
         if (isUpPressed){
             speedY -= boost;
